@@ -29,3 +29,7 @@ export function saveActivity() {
 export function deleteActivity() {
   return {};
 }
+
+export function saveClipboard() {
+  return {};
+}

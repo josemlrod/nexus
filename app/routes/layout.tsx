@@ -1,0 +1,68 @@
+import type { Route } from "./+types/activities";
+import { useState, useEffect } from "react";
+import {
+  getActivities,
+  getClipboard,
+  getFiles,
+  type Activity,
+  type ClipboardItem,
+  type FileItem,
+} from "~/lib/storage";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { ActivityIcon, Clipboard, Upload, BarChart3 } from "lucide-react";
+import { Outlet } from "react-router";
+
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "New React Router App" },
+    { name: "description", content: "Welcome to React Router!" },
+  ];
+}
+
+export default function Layout() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-2 text-balance">
+            Workbase
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Your personal productivity hub for tracking activities, sharing
+            clipboard, and managing files
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-y-8">
+          <Tabs defaultValue="activities" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 bg-card/50 backdrop-blur-sm border border-border/50 h-auto">
+              <TabsTrigger
+                value="activities"
+                className="flex items-center gap-2"
+              >
+                <ActivityIcon className="h-4 w-4" />
+                Activities
+              </TabsTrigger>
+              <TabsTrigger
+                value="clipboard"
+                className="flex items-center gap-2"
+              >
+                <Clipboard className="h-4 w-4" />
+                Clipboard
+              </TabsTrigger>
+              <TabsTrigger value="files" className="flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Files
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <main>
+            <Outlet />
+          </main>
+        </div>
+      </div>
+    </div>
+  );
+}

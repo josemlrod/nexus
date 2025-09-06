@@ -13,8 +13,8 @@ export default function Activities() {
 
   return (
     <div className="flex flex-col gap-y-4">
-      <ActivityForm onActivityAdded={() => {}} />
-      <ActivityList activities={activities} onActivityDeleted={() => {}} />
+      <ActivityForm />
+      <ActivityList activities={activities} />
     </div>
   );
 }

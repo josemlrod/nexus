@@ -8,4 +8,8 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   }),
+  clipboard: defineTable({
+    text: v.string(),
+    updatedAt: v.number(),
+  })
 });

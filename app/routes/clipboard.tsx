@@ -1,26 +1,40 @@
 import type React from "react";
+import { useRef, useState } from "react";
+import { useMutation, useQuery } from "convex/react";
 import { Clipboard as ClipboardIcon } from "lucide-react";
 
-import { useState } from "react";
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 import { Card } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
-import { saveClipboard, type ClipboardItem } from "~/lib/storage";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel.d.ts";
 
 export default function Clipboard() {
-  const [content, setContent] = useState("");
+  const clipboard = useQuery(api.clipboard.get);
+  const updateClipboard = useMutation(api.clipboard.updateClipboard);
+
+  console.log("clipboard", clipboard);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!content.trim()) return;
 
-    setIsSubmitting(true);
+    const formData = new FormData(e.currentTarget);
+    const id = formData.get("id") as Id<"clipboard">;
+    const text = formData.get("text") as string;
+
+    if (!text.trim()) return;
+
     try {
-      const item = saveClipboard(content.trim());
-      // onItemAdded(item);
-      setContent("");
+      setIsSubmitting(true);
+      await updateClipboard({ id: id ? id : undefined, text });
+      return { ok: true };
+    } catch (err) {
+      console.error(err);
+      return { ok: false };
     } finally {
       setIsSubmitting(false);
     }
@@ -30,7 +44,7 @@ export default function Clipboard() {
     try {
       const text = await navigator.clipboard.readText();
       if (text) {
-        setContent(text);
+        if (textAreaRef.current) textAreaRef.current.textContent = text;
       }
     } catch (err) {
       console.error("Failed to read clipboard:", err);
@@ -47,20 +61,27 @@ export default function Clipboard() {
           </h2>
         </div>
 
+        <input
+          className="hidden"
+          name="id"
+          value={clipboard ? clipboard._id : undefined}
+        />
+
         <div className="space-y-2">
           <Label
-            htmlFor="content"
+            htmlFor="text"
             className="text-sm font-medium text-muted-foreground"
           >
             Content
           </Label>
           <Textarea
-            id="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+            id="text"
             placeholder="Paste or type content to share across devices..."
             className="min-h-[120px] bg-background/50 border-border/50 resize-none"
             disabled={isSubmitting}
+            ref={textAreaRef}
+            name="text"
+            defaultValue={clipboard ? clipboard.text : ""}
           />
         </div>
 
@@ -75,7 +96,7 @@ export default function Clipboard() {
           </Button>
           <Button
             type="submit"
-            disabled={!content.trim() || isSubmitting}
+            disabled={isSubmitting}
             className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200"
           >
             {isSubmitting ? "Adding..." : "Add to Shared Clipboard"}

@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as activities from "../activities.js";
+import type * as clipboard from "../clipboard.js";
 
 /**
  * A utility for referencing Convex functions in your app's API.
@@ -25,6 +26,7 @@ import type * as activities from "../activities.js";
  */
 declare const fullApi: ApiFromModules<{
   activities: typeof activities;
+  clipboard: typeof clipboard;
 }>;
 export declare const api: FilterApi<
   typeof fullApi,

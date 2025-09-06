@@ -3,6 +3,7 @@ import { type RouteConfig, index, layout, route } from "@react-router/dev/routes
 export default [
   layout("routes/layout.tsx", [
     index("routes/activities.tsx"),
-    route("clipboard", "routes/clipboard.tsx")
+    route("clipboard", "routes/clipboard.tsx"),
+    route("files", "routes/files.tsx")
   ]),
 ] satisfies RouteConfig;

@@ -1,8 +1,9 @@
 import { ActivityIcon, Clipboard, Upload } from "lucide-react";
-import { Outlet, useNavigate } from "react-router";
+import { NavLink, Outlet } from "react-router";
 
 import type { Route } from "./+types/activities";
-import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { Button } from "~/components/ui/button";
+import clsx from "clsx";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -12,8 +13,6 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Layout() {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -28,40 +27,56 @@ export default function Layout() {
         </div>
 
         <div className="flex flex-col gap-y-8">
-          <Tabs defaultValue="activities" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 bg-card/50 backdrop-blur-sm border border-border/50 h-auto">
-              <TabsTrigger
-                value="activities"
-                className="flex items-center gap-2"
-                onClick={() => {
-                  navigate("/");
+          <div className="grid w-full grid-cols-3 gap-x-1 bg-card/50 backdrop-blur-sm border border-border/50 h-auto rounded-lg p-1">
+            <Button variant="ghost" size="sm" className="p-0">
+              <NavLink
+                to="/"
+                className={({ isActive }) => {
+                  return clsx(
+                    "flex gap-x-2 w-full h-full rounded-md items-center justify-center",
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground",
+                  );
                 }}
               >
                 <ActivityIcon className="h-4 w-4" />
                 Activities
-              </TabsTrigger>
-              <TabsTrigger
-                value="clipboard"
-                className="flex items-center gap-2"
-                onClick={() => {
-                  navigate("/clipboard");
+              </NavLink>
+            </Button>
+            <Button variant="ghost" size="sm" className="p-0">
+              <NavLink
+                to="/clipboard"
+                className={({ isActive }) => {
+                  return clsx(
+                    "flex gap-x-2 w-full h-full rounded-md items-center justify-center",
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground",
+                  );
                 }}
               >
                 <Clipboard className="h-4 w-4" />
                 Clipboard
-              </TabsTrigger>
-              <TabsTrigger
-                value="files"
-                className="flex items-center gap-2"
-                onClick={() => {
-                  navigate("/");
+              </NavLink>
+            </Button>
+            <Button variant="ghost" size="sm" className="p-0">
+              <NavLink
+                to="/files"
+                className={({ isActive }) => {
+                  return clsx(
+                    "flex gap-x-2 w-full h-full rounded-md items-center justify-center",
+                    isActive
+                      ? "bg-accent text-accent-foreground"
+                      : "text-muted-foreground",
+                  );
                 }}
               >
                 <Upload className="h-4 w-4" />
                 Files
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+              </NavLink>
+            </Button>
+          </div>
 
           <main>
             <Outlet />

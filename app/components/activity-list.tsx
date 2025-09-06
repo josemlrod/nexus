@@ -88,9 +88,7 @@ export function ActivityList({ activities = [] }: ActivityListProps) {
         <div className="flex items-center gap-2">
           <Calendar className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-semibold text-foreground">Activities</h2>
-          <Badge variant="secondary" className="bg-muted/50">
-            {filteredActivities.length}
-          </Badge>
+          <Badge variant="outline">{filteredActivities.length}</Badge>
         </div>
 
         <div className="flex items-center gap-2">

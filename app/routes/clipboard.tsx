@@ -14,8 +14,6 @@ export default function Clipboard() {
   const clipboard = useQuery(api.clipboard.get);
   const updateClipboard = useMutation(api.clipboard.updateClipboard);
 
-  console.log("clipboard", clipboard);
-
   const [isSubmitting, setIsSubmitting] = useState(false);
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 

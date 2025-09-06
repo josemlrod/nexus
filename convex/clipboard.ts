@@ -20,12 +20,12 @@ export const updateClipboard = mutation({
           text: args.text,
           updatedAt: date,
         });
+      } else {
+        await ctx.db.insert("clipboard", {
+          text: args.text,
+          updatedAt: date,
+        });
       }
-
-      await ctx.db.insert("clipboard", {
-        text: args.text,
-        updatedAt: date,
-      });
 
       return { ok: true };
     } catch (err) {

@@ -40,11 +40,11 @@ export default function Clipboard() {
     }
   };
 
-  const handlePaste = async () => {
+  const handleCopy = async () => {
     try {
-      const text = await navigator.clipboard.readText();
-      if (text) {
-        if (textAreaRef.current) textAreaRef.current.textContent = text;
+      if (textAreaRef.current) {
+        const text = textAreaRef.current.textContent;
+        await navigator.clipboard.writeText(text);
       }
     } catch (err) {
       console.error("Failed to read clipboard:", err);
@@ -89,10 +89,10 @@ export default function Clipboard() {
           <Button
             type="button"
             variant="outline"
-            onClick={handlePaste}
+            onClick={handleCopy}
             className="flex-1 bg-background/50 border-border/50 hover:bg-accent/50 transition-all duration-200"
           >
-            Paste from Clipboard
+            Copy
           </Button>
           <Button
             type="submit"

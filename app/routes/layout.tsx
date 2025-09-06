@@ -1,16 +1,8 @@
-import type { Route } from "./+types/activities";
-import { useState, useEffect } from "react";
-import {
-  getActivities,
-  getClipboard,
-  getFiles,
-  type Activity,
-  type ClipboardItem,
-  type FileItem,
-} from "~/lib/storage";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { ActivityIcon, Clipboard, Upload, BarChart3 } from "lucide-react";
+import { ActivityIcon, Clipboard, Upload } from "lucide-react";
 import { Outlet, useNavigate } from "react-router";
+
+import type { Route } from "./+types/activities";
+import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -25,7 +17,6 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2 text-balance">
             Workbase

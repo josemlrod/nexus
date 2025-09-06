@@ -1,39 +1,48 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useMutation } from "convex/react";
+import { format } from "date-fns";
+import { Plus } from "lucide-react";
+
 import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 import { Card } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { saveActivity, type Activity } from "~/lib/storage";
-import { Plus } from "lucide-react";
+import { api } from "../../convex/_generated/api";
 
-interface ActivityFormProps {
-  onActivityAdded: (activity: Activity) => void;
-}
+export function ActivityForm() {
+  const addActivity = useMutation(api.activities.addActivity);
 
-export function ActivityForm({ onActivityAdded }: ActivityFormProps) {
-  const [content, setContent] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!content.trim()) return;
 
-    setIsSubmitting(true);
+    const formData = new FormData(e.currentTarget);
+    const date = formData.get("date") as string;
+    const text = formData.get("text") as string;
+
+    if (!text.trim()) return;
+
     try {
-      const activity = saveActivity({ content: content.trim(), date });
-      onActivityAdded(activity);
-      setContent("");
-      setDate(new Date().toISOString().split("T")[0]);
+      setIsSubmitting(true);
+      await addActivity({ date: new Date(date).getTime(), text });
+      return { ok: true };
+    } catch (err) {
+      console.error(err);
+      return { ok: false };
     } finally {
+      if (formRef.current) formRef.current.reset();
       setIsSubmitting(false);
     }
   };
 
+  const defaultDate = format(new Date().getTime(), "yyyy-MM-dd");
+
   return (
     <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4" ref={formRef}>
         <div className="flex items-center gap-2 mb-4">
           <Plus className="h-5 w-5 text-primary" />
           <h2 className="text-lg font-semibold text-foreground">
@@ -50,24 +59,23 @@ export function ActivityForm({ onActivityAdded }: ActivityFormProps) {
           </Label>
           <Input
             id="date"
+            name="date"
             type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
             className="bg-background/50 border-border/50"
+            defaultValue={defaultDate}
           />
         </div>
 
         <div className="space-y-2">
           <Label
-            htmlFor="content"
+            htmlFor="text"
             className="text-sm font-medium text-muted-foreground"
           >
             What did you do? (Markdown supported)
           </Label>
           <Textarea
-            id="content"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
+            id="text"
+            name="text"
             placeholder="Describe your activity... You can use **bold**, *italic*, and [links](https://example.com)"
             className="min-h-[120px] bg-background/50 border-border/50 resize-none"
             disabled={isSubmitting}
@@ -76,7 +84,7 @@ export function ActivityForm({ onActivityAdded }: ActivityFormProps) {
 
         <Button
           type="submit"
-          disabled={!content.trim() || isSubmitting}
+          disabled={isSubmitting}
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200"
         >
           {isSubmitting ? "Adding..." : "Add Activity"}

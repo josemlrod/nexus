@@ -1,4 +1,8 @@
 import { useState, useMemo } from "react";
+import { useMutation } from "convex/react";
+import { Calendar, Trash2, Filter } from "lucide-react";
+import type { FunctionReturnType } from "convex/server";
+
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
@@ -9,8 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { type Activity, deleteActivity } from "~/lib/storage";
-import { Calendar, Trash2, Filter } from "lucide-react";
 import {
   format,
   isWithinInterval,
@@ -18,20 +20,20 @@ import {
   endOfWeek,
   startOfMonth,
   endOfMonth,
-  parseISO,
 } from "date-fns";
+import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel.d.ts";
+
+type Activities = FunctionReturnType<typeof api.activities.get>;
 
 interface ActivityListProps {
-  activities: Activity[];
-  onActivityDeleted: (id: string) => void;
+  activities?: Activities;
 }
 
 type FilterType = "all" | "today" | "week" | "month";
 
-export function ActivityList({
-  activities,
-  onActivityDeleted,
-}: ActivityListProps) {
+export function ActivityList({ activities = [] }: ActivityListProps) {
+  const deleteActivity = useMutation(api.activities.deleteActivity);
   const [filter, setFilter] = useState<FilterType>("all");
 
   const filteredActivities = useMemo(() => {
@@ -41,18 +43,21 @@ export function ActivityList({
     const today = format(now, "yyyy-MM-dd");
 
     return activities.filter((activity) => {
-      const activityDate = parseISO(activity.date);
+      const activityDate = format(
+        new Date(activity._creationTime),
+        "yyyy-MM-dd",
+      );
 
       switch (filter) {
         case "today":
-          return activity.date === today;
+          return activityDate === today;
         case "week":
-          return isWithinInterval(activityDate, {
+          return isWithinInterval(new Date(activity._creationTime), {
             start: startOfWeek(now, { weekStartsOn: 1 }),
             end: endOfWeek(now, { weekStartsOn: 1 }),
           });
         case "month":
-          return isWithinInterval(activityDate, {
+          return isWithinInterval(new Date(activity._creationTime), {
             start: startOfMonth(now),
             end: endOfMonth(now),
           });
@@ -62,9 +67,8 @@ export function ActivityList({
     });
   }, [activities, filter]);
 
-  const handleDelete = (id: string) => {
-    deleteActivity(id);
-    onActivityDeleted(id);
+  const handleDelete = (id: Id<"activities">) => {
+    deleteActivity({ id });
   };
 
   const renderMarkdown = (content: string) => {
@@ -118,7 +122,7 @@ export function ActivityList({
         ) : (
           filteredActivities.map((activity) => (
             <Card
-              key={activity.id}
+              key={activity._id}
               className="p-4 border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/70 transition-all duration-200"
             >
               <div className="flex items-start justify-between gap-4">
@@ -128,23 +132,23 @@ export function ActivityList({
                       variant="outline"
                       className="text-xs bg-background/50"
                     >
-                      {format(parseISO(activity.date), "MMM dd, yyyy")}
+                      {format(new Date(activity._creationTime), "MMM dd, yyyy")}
                     </Badge>
                     <span className="text-xs text-muted-foreground">
-                      {format(parseISO(activity.createdAt), "HH:mm")}
+                      {format(new Date(activity._creationTime), "HH:mm")}
                     </span>
                   </div>
                   <div
                     className="text-sm text-foreground leading-relaxed"
                     dangerouslySetInnerHTML={{
-                      __html: renderMarkdown(activity.content),
+                      __html: renderMarkdown(activity.text),
                     }}
                   />
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleDelete(activity.id)}
+                  onClick={() => handleDelete(activity._id)}
                   className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors duration-200"
                 >
                   <Trash2 className="h-4 w-4" />

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation } from "convex/react";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
@@ -13,8 +13,27 @@ import { api } from "../../convex/_generated/api";
 export function ActivityForm() {
   const addActivity = useMutation(api.activities.addActivity);
 
+  const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    document.addEventListener(
+      "keyup",
+      (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          setOpen(false);
+        }
+      },
+      { signal: controller.signal },
+    );
+
+    return () => {
+      controller.abort();
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,7 +59,7 @@ export function ActivityForm() {
 
   const defaultDate = format(new Date().getTime(), "yyyy-MM-dd");
 
-  return (
+  return open ? (
     <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
       <form onSubmit={handleSubmit} className="space-y-4" ref={formRef}>
         <div className="flex items-center gap-2 mb-4">
@@ -82,14 +101,23 @@ export function ActivityForm() {
           />
         </div>
 
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200"
-        >
-          {isSubmitting ? "Adding..." : "Add Activity"}
-        </Button>
+        <div className="flex justify-end">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground transition-all duration-200"
+          >
+            {isSubmitting ? "Adding..." : "Save"}
+          </Button>
+        </div>
       </form>
     </Card>
+  ) : (
+    <div className="w-full flex justify-end">
+      <Button variant="default" onClick={() => setOpen(true)}>
+        <Plus className="h-5 w-5 text-primary-foreground" />
+        Add Activity
+      </Button>
+    </div>
   );
 }

@@ -23,6 +23,7 @@ export const updateClipboard = mutation({
       } else {
         await ctx.db.insert("clipboard", {
           text: args.text,
+          createdAt: date,
           updatedAt: date,
         });
       }

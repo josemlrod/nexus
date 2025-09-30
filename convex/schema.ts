@@ -10,6 +10,12 @@ export default defineSchema({
   }),
   clipboard: defineTable({
     text: v.string(),
+    createdAt: v.number(),
     updatedAt: v.number(),
-  })
+  }),
+  files: defineTable({
+    fileId: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }),
 });

@@ -1,31 +1,36 @@
 import type React from "react";
-
 import { useState, useCallback } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { format } from "date-fns";
+import {
+  Upload,
+  FileIcon,
+  ImageIcon,
+  Download,
+  Calendar,
+  Trash,
+} from "lucide-react";
+
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import { Badge } from "~/components/ui/badge";
-import { Upload, FileIcon, ImageIcon, Download, Calendar } from "lucide-react";
-import { generateUploadUrl } from "convex/files";
-import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api.js";
-import { format } from "date-fns";
 
 export default function FileUpload() {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [downloadingFiles, setDownloadingFiles] = useState<Set<string>>(new Set());
+  const [downloadingFiles, setDownloadingFiles] = useState<Set<string>>(
+    new Set(),
+  );
 
   const files = useQuery(api.files.list);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const sendFile = useMutation(api.files.sendFile);
   const getDownloadUrl = useMutation(api.files.getDownloadUrl);
-
-  console.log({ files });
+  const deleteFile = useMutation(api.files.deleteFile);
 
   const handleFileUpload = async (files: FileList) => {
-    console.log("in file upload");
-    console.log({ files });
     if (files.length === 0) return;
 
     setIsUploading(true);
@@ -77,11 +82,11 @@ export default function FileUpload() {
   };
 
   const handleDownload = async (fileId: string, fileName: string) => {
-    setDownloadingFiles(prev => new Set(prev).add(fileId));
+    setDownloadingFiles((prev) => new Set(prev).add(fileId));
     try {
       const downloadUrl = await getDownloadUrl({ storageId: fileId });
       if (downloadUrl) {
-        const link = document.createElement('a');
+        const link = document.createElement("a");
         link.href = downloadUrl;
         link.download = fileName;
         document.body.appendChild(link);
@@ -92,7 +97,7 @@ export default function FileUpload() {
       console.error("Error downloading file:", error);
       alert("Error downloading file. Please try again.");
     } finally {
-      setDownloadingFiles(prev => {
+      setDownloadingFiles((prev) => {
         const newSet = new Set(prev);
         newSet.delete(fileId);
         return newSet;
@@ -100,16 +105,20 @@ export default function FileUpload() {
     }
   };
 
+  const handleDelete = async (fileId: string) => {
+    await deleteFile({ storageId: fileId });
+  };
+
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return "0 Bytes";
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
   const getFileIcon = (contentType: string) => {
-    if (contentType && contentType.startsWith('image/')) {
+    if (contentType && contentType.startsWith("image/")) {
       return <ImageIcon className="h-4 w-4" />;
     }
     return <FileIcon className="h-4 w-4" />;
@@ -117,12 +126,11 @@ export default function FileUpload() {
 
   return (
     <div className="space-y-6">
-      <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
-        <div className="flex items-center gap-2 mb-4">
-          <Upload className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">Upload Files</h2>
-        </div>
-
+      <div className="flex items-center gap-2 mb-4">
+        <Upload className="h-5 w-5 text-primary" />
+        <h2 className="text-lg font-semibold text-foreground">Upload Files</h2>
+      </div>
+      <Card className="bg-card/50 backdrop-blur-sm border-0">
         <div
           className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 ${
             isDragging
@@ -184,7 +192,9 @@ export default function FileUpload() {
       <div className="space-y-6">
         <div className="flex items-center gap-2">
           <FileIcon className="h-5 w-5 text-primary" />
-          <h2 className="text-lg font-semibold text-foreground">Uploaded Files</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            Uploaded Files
+          </h2>
           <Badge variant="outline">{files?.length || 0}</Badge>
         </div>
 
@@ -209,16 +219,24 @@ export default function FileUpload() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-sm font-medium text-foreground truncate">
-                          {file.name !== "Unknown" ? file.name : `File ${file._id.slice(-6)}`}
+                          {file.name !== "Unknown"
+                            ? file.name
+                            : `File ${file._id.slice(-6)}`}
                         </p>
-                        <Badge variant="outline" className="text-xs bg-background/50">
+                        <Badge
+                          variant="outline"
+                          className="text-xs bg-background/50"
+                        >
                           {formatFileSize(file.size)}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <Calendar className="h-3 w-3" />
                         <span>
-                          {format(new Date(file.createdAt), "MMM dd, yyyy HH:mm")}
+                          {format(
+                            new Date(file.createdAt),
+                            "MMM dd, yyyy HH:mm",
+                          )}
                         </span>
                       </div>
                     </div>
@@ -226,7 +244,14 @@ export default function FileUpload() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleDownload(file.fileId, file.name !== "Unknown" ? file.name : `file-${file._id.slice(-6)}`)}
+                    onClick={() =>
+                      handleDownload(
+                        file.fileId,
+                        file.name !== "Unknown"
+                          ? file.name
+                          : `file-${file._id.slice(-6)}`,
+                      )
+                    }
                     disabled={downloadingFiles.has(file.fileId)}
                     className="bg-background/50 border-border/50 hover:bg-accent/50 transition-all duration-200"
                   >
@@ -238,6 +263,16 @@ export default function FileUpload() {
                         Download
                       </>
                     )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      handleDelete(file.fileId);
+                    }}
+                    className="bg-background/50 border-border/50 hover:bg-accent/50 transition-all duration-200"
+                  >
+                    <Trash className="h-4 w-4" />
                   </Button>
                 </div>
               </Card>

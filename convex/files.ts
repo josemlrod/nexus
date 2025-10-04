@@ -26,6 +26,13 @@ export const getDownloadUrl = mutation({
   },
 });
 
+export const deleteFile = mutation({
+  args: { storageId: v.string() },
+  handler: async (ctx, args) => {
+    return await ctx.storage.delete(args.storageId)
+  }
+})
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
@@ -43,3 +50,5 @@ export const list = query({
     );
   },
 });
+
+

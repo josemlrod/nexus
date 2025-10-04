@@ -15,7 +15,11 @@ export default defineSchema({
   }),
   files: defineTable({
     fileId: v.string(),
+    name: v.string(),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }),
+  })
+    .index(
+      "by_fileId", ["fileId"],
+    ),
 });

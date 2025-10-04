@@ -49,7 +49,7 @@ export default function FileUpload() {
           body: file,
         });
         const { storageId } = await result.json();
-        await sendFile({ storageId });
+        await sendFile({ name: file.name, storageId });
       }
     } catch (error) {
       console.error("Error uploading file:", error);

@@ -8,11 +8,12 @@ export const generateUploadUrl = mutation({
 });
 
 export const sendFile = mutation({
-  args: { storageId: v.string(), },
+  args: { name: v.string(), storageId: v.string(), },
   handler: async (ctx, args) => {
     const date = new Date().getTime();
     await ctx.db.insert("files", {
       fileId: args.storageId,
+      name: args.name,
       createdAt: date,
       updatedAt: date,
     });
@@ -29,6 +30,11 @@ export const getDownloadUrl = mutation({
 export const deleteFile = mutation({
   args: { storageId: v.string() },
   handler: async (ctx, args) => {
+    const [file] = await ctx.db.query("files").withIndex(
+      "by_fileId", (q) => q.eq("fileId", args.storageId)
+    )
+      .collect();
+    await ctx.db.delete(file._id)
     return await ctx.storage.delete(args.storageId)
   }
 })
@@ -42,7 +48,7 @@ export const list = query({
         const fileMetadata = await ctx.storage.getMetadata(file.fileId);
         return {
           ...file,
-          name: fileMetadata?.contentType || "Unknown",
+          name: file.name || "Unknown",
           size: fileMetadata?.size || 0,
           contentType: fileMetadata?.contentType || "application/octet-stream",
         };
